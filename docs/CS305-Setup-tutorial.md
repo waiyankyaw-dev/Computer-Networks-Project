@@ -346,7 +346,7 @@ Then, you can run ISO file in your virtual machine to install Linux OS.
 
 ### Docker
 
-For those familiar with Docker, we have provided some Docker-related code for reference in `/doc/optional_files/docker` .
+For those familiar with Docker, we have provided some Docker-related code for reference in `/docs/optional_files/docker` .
 
 #### Useful references
 
