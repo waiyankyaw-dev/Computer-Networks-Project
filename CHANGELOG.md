@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2025-11-20]
+
+### Add
+
+- Add a warning to `README.md` regarding the privacy risks of forking public repositories.
+
+### Fix
+
+- Correct the incorrect time preposition in the due date of the main document.
+
 ## [2025-11-03]
 
 ### Add

@@ -2,6 +2,13 @@
 
 For SUSTech CS305 Fall 2025: P2P File Transfer with Reliable Data Transfer
 
+## ⚠️ Warning
+
+Please note that if you **fork** this repository, the new repository will be **Public** by default.
+
+- **Risk:** Any code you push to a public fork is visible to other students.
+- **Responsibility:** To avoid potential plagiarism, you are responsible for ensuring your own code remains **Private** until the end of the semester. We recommend creating a private repository for your own development instead.
+
 ## 📖 Introduction
 
 Before you begin, you should read the following two documents:
