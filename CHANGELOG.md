@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Add
 
 - **Add requirement and example for congestion control in Setup-tutorial to Section 5** - [#7](https://github.com/OctCarp/sustech-cs305-f25-project-starter/pull/7)
+- Add some optional `pytest` configuration, like `-s`: disable output capturing and `log_cli`
 
 ### Fix
 
