@@ -1,6 +1,6 @@
-# SUSTech CS305 2025 Fall Project Starter
+# Computer Networks Project
 
-For SUSTech CS305 Fall 2025: P2P File Transfer with Reliable Data Transfer
+P2P File Transfer with Reliable Data Transfer
 
 ## 📢 Important Updates
 
