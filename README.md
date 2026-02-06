@@ -111,7 +111,107 @@ $$
 (Where $\alpha = 0.125$ and $\beta = 0.25$)
 
 ---
+# Local DNS Server Implementation
 
-## ⚠️ Academic Integrity Disclaimer
+A multi-threaded, iterative Local DNS Server implemented in Python. This project was developed as part of the CS305 Computer Networks Lab Assignment.
 
-This repository contains my solution for the CS305 Course Project. If you are currently taking this course, please do not copy this code. It is published here for portfolio and educational purposes only. Plagiarism is a serious violation of academic integrity policies.
+The server acts as an intermediary between a client (like `dig` or a web browser) and the public DNS infrastructure. Instead of relying on a recursive upstream resolver (like 8.8.8.8) for the full resolution, this server performs **iterative queries** starting from the Root Servers down to the Authoritative Name Servers to resolve domain names.
+
+## 🚀 Features
+
+### 1. Iterative DNS Resolution
+- **Full Traversal:** Performs iterative queries starting from Root DNS servers, moving to Top-Level Domain (TLD) servers, and finally Authoritative servers.
+- **Robust Root Discovery:** Dynamically discovers the fastest/available Root Server IP upon startup using a bootstrap list, falling back to hardcoded roots if necessary.
+- **CNAME Handling:** Correctly follows CNAME chains to resolve the final A record.
+
+### 2. High Performance Caching
+- **Disk Persistence:** Caches DNS records to a local file (`dns_cache.pkl`) using `pickle`, ensuring cache survival across server restarts.
+- **LRU Eviction:** Implements Least Recently Used (LRU) policy using `OrderedDict` to manage cache size (Max 200 entries).
+- **TTL Management:** Respects Time-To-Live (TTL) values.
+    - Standard successful queries: 300s
+    - NXDOMAIN (Negative caching): 60s
+- **Thread Safety:** Uses `threading.Lock` to prevent race conditions during cache reads/writes.
+
+### 3. Concurrency
+- **Producer-Consumer Model:** Decouples packet reception and processing using thread-safe queues (`request_queue`, `response_queue`).
+- **Multi-threaded Architecture:** 
+    - Receiver Thread
+    - Sender Thread
+    - Pool of 30 Worker Threads (`DNSHandler`) to process queries in parallel.
+- **Non-blocking I/O:** capable of handling concurrent requests efficiently (verified < 0.3s response time for cached concurrent batches).
+
+### 4. Traffic Control (Firewall Features)
+- **DNS Redirection:** Redirects specific domains to custom IPs (e.g., redirecting `google.com` to `127.0.0.1` or blocking ads by redirecting to `0.0.0.0`).
+- **DNS Filtering/Blocking:** Blocks malicious or distracting domains (e.g., `malware-site.com`) by returning `REFUSED` (RCODE 5) or a custom TXT record explaining the block.
+
+## 🛠️ Architecture
+
+The project is structured into four main classes:
+
+1.  **`DNSServer`**: The main entry point. Sets up the UDP socket (Port 5533), manages the thread pool, and handles the graceful start/stop lifecycle.
+2.  **`DNSHandler`**: The worker logic. Parses incoming packets, checks the Blocklist/Redirect map, queries the Cache, or initiates the Iterative Query process.
+3.  **`CacheManager`**: Manages storage, retrieval, locking, expiration, and auto-saving of DNS records.
+4.  **`ReplyGenerator`**: Helper class to construct standard DNS response packets using `dnslib`.
+
+## 📋 Prerequisites
+
+- **Python 3.12+**
+- **Libraries:**
+  ```bash
+  pip install dnslib dnspython
+  ```
+
+## 🏃 Usage
+
+1.  **Start the Server:**
+    Run the main script. The server will listen on `0.0.0.0:5533`.
+    ```bash
+    python LocalDNSServer.py
+    ```
+
+2.  **Test with `dig`:**
+    Open a separate terminal and query your local server.
+    ```bash
+    # Standard Query
+    dig @127.0.0.1 -p 5533 www.baidu.com
+
+    # Query a domain that triggers the Blocker (Example)
+    dig @127.0.0.1 -p 5533 malware-site.com
+    ```
+
+3.  **Stop the Server:**
+    Press `Ctrl+C` in the server terminal. The server will save the current cache to disk before shutting down.
+
+## ⚙️ Configuration
+
+You can modify the `DNSHandler` class in `LocalDNSServer.py` to customize the redirection and blocking rules:
+
+**Redirection Map:**
+```python
+self.redirect_map = {
+    "www.google.com": "127.0.0.1",
+    "doubleclick.net": "0.0.0.0",
+    # Add custom rules here
+}
+```
+
+**Blocklist:**
+```python
+self.blocklist = {
+    "malware-site.com",
+    "phishing-attack.net",
+    # Add domains to block here
+}
+```
+
+## 🧪 Testing Results
+
+The server has been tested against:
+- **Functional Tests:** Successfully resolves A records, follows CNAMEs, and handles NXDOMAIN.
+- **Concurrency Tests:** Handled batches of 25 simultaneous queries with significant speedup on subsequent runs due to caching.
+- **Wireshark Analysis:** Packet captures confirm the server performs genuine iterative queries (RD=0) rather than recursive forwarding.
+
+## 📝 License
+
+This project is for educational purposes (CS305 Project and Lab Assignment).
+```
